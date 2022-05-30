@@ -2,17 +2,17 @@ import Notiflix from 'notiflix';
 
 const formEl = document.querySelector('.form');
 const allInputsinForm = formEl.querySelectorAll('input');
-let inputObj = {};
+let objectFromInputs = {};
 
 formEl.addEventListener('submit', event => {
   event.preventDefault();
-  allInputsinForm.forEach(el => (inputObj[el.name] = el.value));
 
-  let delay = Number(inputObj.delay);
+  setValuesInObjFromInputs(allInputsinForm);
+  let delay = Number(objectFromInputs.delay);
 
-  for (let i = 1; i <= inputObj.amount; i += 1) {
+  for (let i = 1; i <= objectFromInputs.amount; i += 1) {
     if (i >= 2) {
-      delay += Number(inputObj.step);
+      delay += Number(objectFromInputs.step);
       createPromise(i, delay)
         .then(({ position, delay }) => {
           Notiflix.Notify.success(
@@ -34,7 +34,7 @@ formEl.addEventListener('submit', event => {
         });
     }
   }
-  inputObj = {};
+  objectFromInputs = {};
 });
 
 function createPromise(position, delay) {
@@ -48,4 +48,7 @@ function createPromise(position, delay) {
       }
     }, delay);
   });
+}
+function setValuesInObjFromInputs(arr) {
+  arr.forEach(el => (objectFromInputs[el.name] = el.value));
 }

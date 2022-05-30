@@ -6,10 +6,10 @@ const timer = document.querySelector('.timer');
 const allValue = document.querySelectorAll('.value');
 const inputDataEl = document.querySelector('#datetime-picker');
 const startBtnEl = document.querySelector('[data-start]');
-startBtnEl.addEventListener('click', onStartBtn);
+
 startBtnEl.disabled = true;
-let trigerToStart = false;
-let selectesDateInMs = 0;
+let trigerToStartTimer = false;
+let selectesDateInInput = 0;
 let timerId = null;
 const options = {
   enableTime: true,
@@ -17,24 +17,24 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onOpen() {
-    if (trigerToStart) {
+    if (trigerToStartTimer) {
       Notiflix.Notify.warning(
-        'please "Click" in Timer,  if you wont set new timer, or wait when time will be over. '
+        'Please "Click" in Timer, if you wont set new timer, or wait when time will be over. '
       );
     }
   },
   onClose(selectedDates) {
-    if (!trigerToStart) {
+    if (!trigerToStartTimer) {
       if (selectedDates[0] - Date.now() > 600) {
         startBtnEl.disabled = false;
+        startBtnEl.addEventListener('click', onStartBtn);
         Notiflix.Notify.success('You input correct date');
-        selectesDateInMs = selectedDates[0];
+        selectesDateInInput = selectedDates[0];
 
         return;
       }
-
       startBtnEl.disabled = true;
-      Notiflix.Notify.failure('please choose a date in the future');
+      Notiflix.Notify.failure('Please choose a date in the future');
     }
   },
 };
@@ -44,19 +44,20 @@ flatpickr(inputDataEl, options);
 function onStartBtn() {
   timer.addEventListener('click', onTimerClick);
   startBtnEl.disabled = true;
-  trigerToStart = true;
-  selectesDateInMs -= Date.now();
+  startBtnEl.removeEventListener('click', onStartBtn);
+  trigerToStartTimer = true;
+  selectesDateInInput -= Date.now();
   timerId = setInterval(function startCounter() {
-    selectesDateInMs -= 1000;
-    if (selectesDateInMs <= 0) {
+    selectesDateInInput -= 1000;
+    if (selectesDateInInput <= 0) {
       clearInterval(timerId);
       Notiflix.Notify.success('You time is over!');
       timer.removeEventListener('click', onTimerClick);
-      trigerToStart = false;
+      trigerToStartTimer = false;
       return;
     }
 
-    setAllValuesInElements(convertMs(selectesDateInMs));
+    setAllValuesInElements(convertMs(selectesDateInInput));
   }, 1000);
 }
 
@@ -97,5 +98,6 @@ function onTimerClick(event) {
   clearInterval(timerId);
   allValue.forEach(el => (el.textContent = '00'));
   timer.removeEventListener('click', onTimerClick);
-  trigerToStart = false;
+  Notiflix.Notify.warning('You stoped the timer.');
+  trigerToStartTimer = false;
 }
