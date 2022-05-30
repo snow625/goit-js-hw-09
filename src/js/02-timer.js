@@ -2,14 +2,15 @@ import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
 import Notiflix from 'notiflix';
 
-const allValueEls = document.querySelectorAll('.value');
+const timer = document.querySelector('.timer');
+const allValue = document.querySelectorAll('.value');
 const inputDataEl = document.querySelector('#datetime-picker');
 const startBtnEl = document.querySelector('[data-start]');
 startBtnEl.addEventListener('click', onStartBtn);
 startBtnEl.disabled = true;
 let trigerToStart = false;
 let selectesDateInMs = 0;
-
+let timerId = null;
 const options = {
   enableTime: true,
   time_24hr: true,
@@ -17,8 +18,8 @@ const options = {
   minuteIncrement: 1,
   onOpen() {
     if (trigerToStart) {
-      Notiflix.Notify.failure(
-        'please refresh site,  if you wont set new timer) '
+      Notiflix.Notify.warning(
+        'please "Click" in Timer,  if you wont set new timer, or wait when time will be over. '
       );
     }
   },
@@ -27,7 +28,8 @@ const options = {
       if (selectedDates[0] - Date.now() > 600) {
         startBtnEl.disabled = false;
         Notiflix.Notify.success('You input correct date');
-        selectesDateInMs = selectedDates[0] - 1 + 1;
+        selectesDateInMs = selectedDates[0];
+
         return;
       }
 
@@ -40,14 +42,17 @@ const options = {
 flatpickr(inputDataEl, options);
 
 function onStartBtn() {
+  timer.addEventListener('click', onTimerClick);
   startBtnEl.disabled = true;
   trigerToStart = true;
-  selectesDateInMs = selectesDateInMs - Date.now();
-  const timerId = setInterval(function startCounter() {
-    selectesDateInMs = selectesDateInMs - 1000;
-    if (selectesDateInMs < 0) {
+  selectesDateInMs -= Date.now();
+  timerId = setInterval(function startCounter() {
+    selectesDateInMs -= 1000;
+    if (selectesDateInMs <= 0) {
       clearInterval(timerId);
       Notiflix.Notify.success('You time is over!');
+      timer.removeEventListener('click', onTimerClick);
+      trigerToStart = false;
       return;
     }
 
@@ -83,4 +88,14 @@ function convertMs(ms) {
 }
 function addLeadingZero(value) {
   return String(value).padStart(2, 0);
+}
+
+function onTimerClick(event) {
+  if (event.target.nodeName !== 'SPAN') {
+    return;
+  }
+  clearInterval(timerId);
+  allValue.forEach(el => (el.textContent = '00'));
+  timer.removeEventListener('click', onTimerClick);
+  trigerToStart = false;
 }
